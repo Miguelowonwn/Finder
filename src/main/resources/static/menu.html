@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Menú de Finder</title>
+  <!-- Google Fonts para mantener la estética -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome para el ícono de ajustes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #6B73FF, #000DFF);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #000DFF;
+    }
+    nav a {
+      text-decoration: none;
+      color: #000DFF;
+      margin: 0 10px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    .settings-icon {
+      font-size: 24px;
+      color: #000DFF;
+      cursor: pointer;
+    }
+    .container {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .menu-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+    .menu-content h2 {
+      margin-bottom: 15px;
+      color: #000DFF;
+    }
+    .menu-content p {
+      font-size: 16px;
+      color: #333;
+    }
+    /* Estilos para la info del usuario logueado */
+    .user-info {
+      margin-top: 20px;
+    }
+    .user-info img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto;
+    }
+    .user-info span {
+      display: block;
+      margin-top: 10px;
+      font-size: 20px;
+      color: #000DFF;
+    }
+    /* Lista horizontal de usuarios */
+    .user-list {
+      margin-top: 20px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-bottom: 10px;
+    }
+    .user-card {
+      display: inline-block;
+      width: 80px;
+      margin: 0 10px;
+      text-align: center;
+    }
+    .user-card img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto;
+    }
+    .user-card span {
+      display: block;
+      margin-top: 5px;
+      font-size: 14px;
+      color: #000DFF;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Finder</h1>
+  <nav>
+    <a href="/menu.html"><i class="fa-solid fa-house settings-icon"></i></a>
+    <a href="/jugar.html">Jugar</a>
+    <a href="/matches.html">Matches</a>
+    <a href="/ajustes.html"><i class="fa-solid fa-gear settings-icon"></i></a>
+  </nav>
+</header>
+<div class="container">
+  <div class="menu-content">
+    <h2>Bienvenido a Finder</h2>
+    <p>Elige una opción del menú para continuar.</p>
+    <!-- Información del usuario logueado -->
+    <div class="user-info" id="user-info"></div>
+    <!-- Lista horizontal de usuarios -->
+    <h3>Usuarios ligando actualmente</h3>
+    <div class="user-list" id="user-list"></div>
+  </div>
+</div>
+<script>
+  let loggedInUserId = null;
+
+  // Función para obtener el usuario logueado
+  async function fetchLoggedInUser() {
+    try {
+      const response = await fetch('/api/auth/user');
+      if (!response.ok) throw new Error("No se pudo obtener el usuario logueado");
+      const user = await response.json();
+      loggedInUserId = user.id;
+      displayLoggedInUser(user);
+      fetchAllUsers();
+    } catch (error) {
+      console.error("Error al obtener el usuario logueado:", error);
+    }
+  }
+
+  // Muestra la información del usuario logueado
+  function displayLoggedInUser(user) {
+    const userInfoDiv = document.getElementById('user-info');
+    const userImg = document.createElement('img');
+    userImg.src = `/usuarios/${user.id}/foto`;
+    userImg.alt = user.nombre;
+    userImg.onerror = function() {
+      this.onerror = null;
+      this.src = 'https://as1.ftcdn.net/v2/jpg/06/63/65/82/1000_F_663658211_HPXUOTkwpVcoOGiGkRkk8vqLiT8Aljj5.jpg';
+    };
+    const userName = document.createElement('span');
+    userName.textContent = user.nombre;
+    userInfoDiv.appendChild(userImg);
+    userInfoDiv.appendChild(userName);
+  }
+
+  // Función para obtener todos los usuarios (se asume un endpoint /usuarios)
+  async function fetchAllUsers() {
+    try {
+      const response = await fetch('/usuarios/todos');
+      if (!response.ok) throw new Error("Error al obtener usuarios");
+      const users = await response.json();
+      displayUserList(users);
+    } catch (error) {
+      console.error("Error al obtener usuarios:", error);
+    }
+  }
+
+  // Muestra la lista horizontal de usuarios
+  function displayUserList(users) {
+    const userListDiv = document.getElementById('user-list');
+    userListDiv.innerHTML = '';
+    // Filtrar para no mostrar al usuario logueado
+    const filteredUsers = users.filter(u => u.id !== loggedInUserId);
+    filteredUsers.forEach(user => {
+      const userCard = document.createElement('div');
+      userCard.classList.add('user-card');
+      const imgUrl = `/usuarios/${user.id}/foto`;
+      userCard.innerHTML = `
+        <img src="${imgUrl}" alt="${user.nombre}" onerror="this.onerror=null; this.src='https://as1.ftcdn.net/v2/jpg/06/63/65/82/1000_F_663658211_HPXUOTkwpVcoOGiGkRkk8vqLiT8Aljj5.jpg'">
+        <span>${user.nombre}</span>
+      `;
+      userListDiv.appendChild(userCard);
+    });
+  }
+
+  // Inicializa obteniendo el usuario logueado
+  fetchLoggedInUser();
+</script>
+</body>
+</html>

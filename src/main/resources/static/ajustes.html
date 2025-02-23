@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajustes de Perfil</title>
+  <!-- Google Fonts para mantener la estética -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome para íconos (opcional) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-hash-aquí" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-hash-aquí" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #6B73FF, #000DFF);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      background: #fff;
+      width: 100%;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #000DFF;
+    }
+    nav a {
+      text-decoration: none;
+      color: #000DFF;
+      margin: 0 10px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      width: 90%;
+      margin-top: 20px;
+    }
+    .container h2 {
+      margin-top: 0;
+      color: #000DFF;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    form label {
+      margin: 10px 0 5px;
+      color: #333;
+    }
+    form input[type="text"],
+    form input[type="file"] {
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    form button {
+      padding: 10px;
+      background: #000DFF;
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-bottom: 10px;
+    }
+    form button:hover {
+      background: #000bbd;
+    }
+    .extra-actions {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 10px;
+    }
+    .extra-actions button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .extra-actions button.delete {
+      background: #ff3333;
+    }
+    .extra-actions button.delete:hover {
+      background: #cc2929;
+    }
+    .extra-actions button.logout {
+      background: #000DFF;
+    }
+    .extra-actions button.logout:hover {
+      background: #000bbd;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Finder</h1>
+  <nav>
+    <a href="/menu.html"><i class="fa-solid fa-house settings-icon"></i></a>
+    <a href="/jugar.html">Jugar</a>
+    <a href="/matches.html">Matches</a>
+    <!-- Ícono de ajustes que redirige a ajustes.html -->
+    <a href="/ajustes.html"><i class="fa-solid fa-gear settings-icon"></i></a>
+  </nav>
+</header>
+<div class="container">
+  <h2>Actualizar Perfil</h2>
+  <form id="ajustesForm" enctype="multipart/form-data">
+    <label for="nombre">Nuevo Nombre:</label>
+    <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nuevo nombre">
+
+    <label for="foto">Nueva Foto de Perfil:</label>
+    <input type="file" id="foto" name="foto" accept="image/*">
+
+    <button type="submit">Actualizar Perfil</button>
+  </form>
+  <div class="extra-actions">
+    <button class="delete" id="deleteAccount">Borrar Cuenta</button>
+    <button class="logout" id="logoutButton">Cerrar Sesión</button>
+  </div>
+</div>
+<script>
+  document.getElementById('ajustesForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    try {
+      const response = await fetch('/api/auth/ajustes', {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+      alert("Perfil actualizado correctamente.");
+      // Opcional: redirigir al menú o refrescar la página.
+    } catch (error) {
+      alert("Error al actualizar el perfil: " + error.message);
+    }
+  });
+
+  document.getElementById('deleteAccount').addEventListener('click', async function() {
+    if (confirm("¿Estás seguro de que deseas borrar tu cuenta? Esta acción no se puede deshacer.")) {
+      try {
+        const response = await fetch('/api/auth/deleteAccount', { method: 'DELETE' });
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText);
+        }
+        alert("Cuenta borrada correctamente.");
+        window.location.href = "/register.html"; // Redirige a la página de registro
+      } catch (error) {
+        alert("Error al borrar la cuenta: " + error.message);
+      }
+    }
+  });
+
+  document.getElementById('logoutButton').addEventListener('click', async function() {
+    try {
+      const response = await fetch('/logout', { method: 'POST' });
+      if (!response.ok) throw new Error("Error al cerrar sesión");
+      window.location.href = "/login.html";
+    } catch (error) {
+      alert("Error al cerrar sesión: " + error.message);
+    }
+  });
+</script>
+</body>
+</html>

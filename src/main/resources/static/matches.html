@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><!DOCTYPE html>
+      <html lang="es">
+      <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Matches de Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome para los íconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-hash-aquí" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #6B73FF, #000DFF);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #000DFF;
+    }
+    nav a {
+      text-decoration: none;
+      color: #000DFF;
+      margin: 0 10px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    .container {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .matches-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      max-width: 800px;
+      width: 90%;
+    }
+    .matches-content h2 {
+      margin-top: 0;
+      color: #000DFF;
+    }
+    .match-card {
+      display: inline-block;
+      width: 150px;
+      margin: 10px;
+      text-align: center;
+      vertical-align: top;
+    }
+    .match-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .match-card h3 {
+      margin: 5px 0 0;
+      font-size: 16px;
+      color: #000DFF;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Finder</h1>
+  <nav>
+    <a href="/menu.html"><i class="fa-solid fa-house settings-icon"></i></a>
+    <a href="/jugar.html">Jugar</a>
+    <a href="/matches.html">Matches</a>
+    <!-- Ícono de ajustes que redirige a ajustes.html -->
+    <a href="/ajustes.html"><i class="fa-solid fa-gear settings-icon"></i></a>
+  </nav>
+</header>
+<div class="container">
+  <div class="matches-content">
+    <h2>Tus Matches</h2>
+    <div id="matches-container">
+      <!-- Aquí se cargarán los matches -->
+    </div>
+  </div>
+</div>
+<script>
+  let matches = [];
+  let loggedInUserId = null;
+
+  // Función para obtener el usuario logueado
+  async function fetchLoggedInUser() {
+      try {
+          const response = await fetch('/api/auth/user');
+          if (!response.ok) throw new Error("No se pudo obtener el usuario logueado");
+          const user = await response.json();
+          loggedInUserId = user.id;
+          fetchMatches();
+      } catch (error) {
+          console.error("Error al obtener el usuario logueado:", error);
+          window.location.href = "/login.html";
+      }
+  }
+
+  // Función para obtener los matches del usuario logueado
+  async function fetchMatches() {
+      try {
+          const response = await fetch('/finder/matches'); // Asegúrate de tener un endpoint que devuelva los matches del usuario logueado
+          if (!response.ok) throw new Error("Error al obtener matches");
+          matches = await response.json();
+          displayMatches();
+      } catch (error) {
+          console.error("Error al obtener matches:", error);
+      }
+  }
+
+  // Función para mostrar los matches
+  function displayMatches() {
+      const container = document.getElementById('matches-container');
+      container.innerHTML = '';
+      if (matches.length === 0) {
+          container.innerHTML = '<p>No tienes matches.</p>';
+          return;
+      }
+      matches.forEach(match => {
+          // Determinar el usuario que no es el logueado (el match partner)
+          let otherUser;
+          if (match.matchDado && match.matchRecibido) {
+              if (match.matchDado.id === loggedInUserId) {
+                  otherUser = match.matchRecibido;
+              } else {
+                  otherUser = match.matchDado;
+              }
+          }
+          if (otherUser) {
+              const matchCard = document.createElement('div');
+              matchCard.classList.add('match-card');
+              const imgUrl = `/usuarios/${otherUser.id}/foto`;
+              matchCard.innerHTML = `
+                <img src="${imgUrl}" alt="${otherUser.nombre}" onerror="this.onerror=null; this.src='https://as1.ftcdn.net/v2/jpg/06/63/65/82/1000_F_663658211_HPXUOTkwpVcoOGiGkRkk8vqLiT8Aljj5.jpg'" class="match-photo">
+                <h3>${otherUser.nombre}</h3>
+              `;
+              container.appendChild(matchCard);
+          }
+      });
+  }
+
+  // Inicializar: obtener usuario logueado y luego los matches
+  fetchLoggedInUser();
+</script>
+</body>
+</html>
+</title>
+</head>
+<body>
+
+</body>
+</html>
