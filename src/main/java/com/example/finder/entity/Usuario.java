@@ -19,9 +19,11 @@
         @Column(nullable = false, length = 100)
         private String nombre;
 
+
         @Column(nullable = false, unique = true, length = 255)
         private String username;
 
+        @JsonIgnore // No se incluirá en la serialización JSON
         @Column(nullable = false)
         private String password;
 
@@ -35,6 +37,7 @@
         @JsonManagedReference
         private List<Like> likesDados;
 
+        @JsonIgnore // No se incluirá en la serialización JSON
         @OneToMany(mappedBy = "usuarioLikeado", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonBackReference
         private List<Like> likesRecibidos;

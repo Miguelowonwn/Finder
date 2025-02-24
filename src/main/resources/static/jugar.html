@@ -203,15 +203,21 @@
     }
   }
 
+   // Función para verificar los matches y recibir la cantidad de nuevos matches
   async function verificarMatches() {
-  try {
-    const response = await fetch('/finder/matches/verificar', { method: 'POST' });
-    if (!response.ok) throw new Error("Error al verificar matches");
-    console.log("Matches verificados");
-  } catch (error) {
-    console.error(error);
+    try {
+      const response = await fetch('/finder/matches/verificar', { method: 'POST' });
+      if (!response.ok) throw new Error("Error al verificar matches");
+      // Suponemos que el endpoint devuelve algo como { "newMatches": 1 }
+      const result = await response.json();
+      if (result.newMatches && result.newMatches > 0) {
+        alert("¡Tienes un nuevo match!");
+      }
+    } catch (error) {
+      console.error("Error en la verificación de matches:", error);
+    }
   }
-}
+
 
 async function likeUsuario(id) {
     if (!loggedInUserId) {

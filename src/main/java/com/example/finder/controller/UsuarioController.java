@@ -58,21 +58,5 @@ public class UsuarioController {
         return lista;
     }
 
-    @GetMapping("/{id}/foto")
-    public ResponseEntity<Resource> obtenerFotoUsuario(@PathVariable Integer id) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        if (usuario.getFotoPerfil() == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        ByteArrayResource resource = new ByteArrayResource(usuario.getFotoPerfil());
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG) // Cambia si es PNG o GIF
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"foto.jpg\"")
-                .body(resource);
-    }
-
 }
 
