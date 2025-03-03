@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class UsuarioController {
     }
 
 
-    @GetMapping("/usuarios/{id}/foto")
+    @GetMapping("/{id}/foto")
     public ResponseEntity<byte[]> obtenerFotoPerfil(@PathVariable Integer id) {
         try {
             Usuario usuario = usuarioRepository.findById(id)
@@ -39,17 +40,32 @@ public class UsuarioController {
             byte[] fotoPerfil = usuario.getFotoPerfil();
 
             if (fotoPerfil == null || fotoPerfil.length == 0) {
-                // Si no tiene foto, puedes devolver una imagen por defecto
                 return ResponseEntity.notFound().build();
             }
 
             return ResponseEntity.ok()
-                    .header("Content-Type", "image/jpeg") // O "image/png" según el tipo
+                    .contentType(MediaType.IMAGE_JPEG) // Cambiar si es PNG
                     .body(fotoPerfil);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @PostMapping("/{id}/foto")
+    public ResponseEntity<String> subirFoto(@PathVariable Integer id, @RequestParam("file") MultipartFile file) {
+        try {
+            Usuario usuario = usuarioRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+            usuario.setFotoPerfil(file.getBytes());
+            usuarioRepository.save(usuario);
+
+            return ResponseEntity.ok("Foto subida exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir la foto");
+        }
+    }
+
 
     @GetMapping("/pendientes")
     public List<Usuario> getUsuariosPendientes() {

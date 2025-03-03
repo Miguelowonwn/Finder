@@ -182,19 +182,10 @@
     }
   });
 
-  document.getElementById('logoutButton').addEventListener('click', async function() {
-  try {
-    const response = await fetch('/logout', {
-      method: 'GET',
-      credentials: 'include', // Envía las cookies de sesión
-      redirect: 'follow'
-    });
-    if (!response.ok) throw new Error("Error al cerrar sesión");
-    window.location.href = "/login.html";
-  } catch (error) {
-    alert("Error al cerrar sesión: " + error.message);
-  }
+  document.getElementById('logoutButton').addEventListener('click', function() {
+  window.location.href = "/logout";
 });
+
 
 </script>
 </body>
