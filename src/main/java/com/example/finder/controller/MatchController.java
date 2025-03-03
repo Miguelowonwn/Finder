@@ -54,16 +54,20 @@ public class MatchController {
     @PostMapping("/verificar")
     public ResponseEntity<?> verificarMatches(Authentication authentication) {
         try {
-            // Obtén el usuario logueado (su ID, por ejemplo)
             int userId = userService.obtenerIdUsuarioLogueado();
             Usuario usuario = userService.findById(userId);
 
-            // Verifica matches para este usuario
-            matchService.verificarMatches(usuario);
+            int nuevosMatches = matchService.verificarMatches(usuario);
 
-            return ResponseEntity.ok("Matches verificados exitosamente.");
+            // 🔥 DEPURACIÓN: Verifica cuántos nuevos matches detecta realmente
+            System.out.println("Matches nuevos detectados: " + nuevosMatches);
+
+            // Si no hay nuevos matches, forzar que la respuesta sea `0`
+            return ResponseEntity.ok().body("{\"newMatches\": " + (nuevosMatches > 0 ? nuevosMatches : 0) + "}");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al verificar matches: " + e.getMessage());
+            return ResponseEntity.badRequest().body("{\"error\": \"Error al verificar matches: " + e.getMessage() + "\"}");
         }
     }
+
+
 }

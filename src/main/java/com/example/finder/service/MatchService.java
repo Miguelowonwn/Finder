@@ -25,8 +25,10 @@ public class MatchService {
      * Revisa todos los likes que el usuario ha dado (que sean likes reales)
      * y si el otro usuario ya te dio like, crea un match (si no existe ya).
      */
-    public void verificarMatches(Usuario usuario) {
-        // Obtén todos los likes que el usuario dio y que sean likes (es decir, es_like = true)
+
+    public int verificarMatches(Usuario usuario) {
+        int nuevosMatches = 0;
+
         List<Like> likesDados = likeRepository.findByUsuario(usuario)
                 .stream()
                 .filter(Like::comprobarEs_like)
@@ -34,17 +36,16 @@ public class MatchService {
 
         for (Like like : likesDados) {
             Usuario otro = like.getUsuarioLikeado();
-            // Comprueba si el otro usuario ya te dio like
+
             Optional<Like> likeReciproco = likeRepository.findByUsuarioAndUsuarioLikeado(otro, usuario)
                     .filter(Like::comprobarEs_like);
 
             if (likeReciproco.isPresent()) {
-                // Evitamos duplicados comprobando en ambas direcciones
-                Optional<Match> matchExistente = matchRepository.findByMatchDadoAndMatchRecibido(usuario, otro);
-                Optional<Match> matchExistenteInverso = matchRepository.findByMatchDadoAndMatchRecibido(otro, usuario);
-                if (matchExistente.isEmpty() && matchExistenteInverso.isEmpty()) {
+                // ✅ VERIFICAMOS SI YA EXISTE UN MATCH ANTES DE CONTARLO
+                boolean matchYaExiste = matchRepository.countMatchesBetweenUsers(usuario, otro) > 0;
+
+                if (!matchYaExiste) {
                     Match match = new Match();
-                    // Para tener un orden consistente, asigna el de menor ID como el que "inicia" el match.
                     if (usuario.getId() < otro.getId()) {
                         match.setMatchDado(usuario);
                         match.setMatchRecibido(otro);
@@ -53,8 +54,19 @@ public class MatchService {
                         match.setMatchRecibido(usuario);
                     }
                     matchRepository.save(match);
+                    nuevosMatches++;
+
+                    // 🔥 DEPURACIÓN: Solo imprimimos cuando se crea un match nuevo
+                    System.out.println("Nuevo match creado entre: " + usuario.getId() + " y " + otro.getId());
                 }
             }
         }
+
+        // 🔥 DEPURACIÓN: Asegurarnos de que `nuevosMatches` es correcto
+        System.out.println("Total de nuevos matches detectados: " + nuevosMatches);
+
+        return nuevosMatches;
     }
+
+
 }

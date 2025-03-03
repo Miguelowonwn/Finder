@@ -111,6 +111,44 @@
     .dislike:hover {
       background: #cc2929;
     }
+      /* Estilos del modal */
+  .modal {
+    display: none; /* Se activará con JS */
+    position: fixed;
+    z-index: 9999; /* Asegura que esté en el frente */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  .close {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  .btn {
+    padding: 10px 20px;
+    background: #000DFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .btn:hover {
+    background: #0009CC;
+  }
+
     #message {
       position: absolute;
       top: 50%;
@@ -119,6 +157,7 @@
       color: #fff;
       text-align: center;
     }
+
   </style>
 </head>
 <body>
@@ -135,6 +174,15 @@
 <div class="card-container">
   <div id="message" style="display: none;">No hay más usuarios disponibles</div>
   <div id="user-cards-container"></div>
+</div>
+<!-- Modal de Match -->
+<div id="match-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="cerrarModal()">&times;</span>
+    <h2>¡Tienes un nuevo match! 🎉</h2>
+    <p>Has coincidido con alguien. Ve a la sección de matches para verlo.</p>
+    <a href="/matches.html"><button class="btn">Ver Matches</button></a>
+  </div>
 </div>
 
 <script>
@@ -158,20 +206,29 @@
   }
 
   // Función para obtener los usuarios pendientes desde el backend
-  async function fetchUsuariosPendientes() {
+async function fetchUsuariosPendientes() {
     try {
-      const response = await fetch('/usuarios/pendientes');
-      usuarios = await response.json();
-      console.log("Usuarios obtenidos:", usuarios);
-      if (usuarios.length === 0) {
-        mostrarMensaje();
-      } else {
+        const response = await fetch('/usuarios/pendientes');
+        usuarios = await response.json();
+
+        if (usuarios.length === 0) {
+            mostrarMensaje();
+            return;
+        }
+
         mostrarUsuario(currentIndex);
-      }
+
+        if (loggedInUserId) {
+            setTimeout(() => {
+                console.log("🟢 Ejecutando verificación de matches después de cargar usuarios...");
+                verificarMatches();
+            }, 5000);
+        } else {
+        }
     } catch (error) {
-      console.error("Error al obtener usuarios:", error);
+        console.error("Error al obtener usuarios:", error);
     }
-  }
+}
 
   // Mostrar mensaje si no hay usuarios
   function mostrarMensaje() {
@@ -204,30 +261,52 @@
   }
 
    // Función para verificar los matches y recibir la cantidad de nuevos matches
-  async function verificarMatches() {
+ async function verificarMatches() {
     try {
-      const response = await fetch('/finder/matches/verificar', { method: 'POST' });
-      if (!response.ok) throw new Error("Error al verificar matches");
-      // Suponemos que el endpoint devuelve algo como { "newMatches": 1 }
-      const result = await response.json();
-      if (result.newMatches && result.newMatches > 0) {
-        alert("¡Tienes un nuevo match!");
-      }
+        const response = await fetch('/finder/matches/verificar', { method: 'POST' });
+        if (!response.ok) throw new Error("Error al verificar matches");
+
+        const result = await response.json();
+        console.log("Respuesta JSON del servidor:", result);
+
+        if (result && typeof result.newMatches === "number" && result.newMatches > 0) {
+            console.log(result);
+            mostrarModal();
+        }
     } catch (error) {
-      console.error("Error en la verificación de matches:", error);
+        console.error("Error en la verificación de matches:", error);
     }
-  }
+}
 
 
-async function likeUsuario(id) {
+// Función para mostrar el modal
+function mostrarModal() {
+    let modal = document.getElementById("match-modal");
+
+    if (modal) {
+        if (modal.style.display === "flex") {
+            return;
+        }
+        modal.style.display = "flex";
+    }
+}
+
+// Función para cerrar el modal
+function cerrarModal() {
+    document.getElementById("match-modal").style.display = "none";
+}
+
+ async function likeUsuario(id) {
     if (!loggedInUserId) {
         console.error("Usuario no autenticado");
         return;
     }
     try {
+        console.log(`Enviando like a ${id}...`);
         const response = await fetch(`/finder/like/${loggedInUserId}/${id}`, { method: 'POST' });
         if (!response.ok) throw new Error("Error al dar like");
-        // Verifica los matches después de la acción
+
+        console.log("Like enviado con éxito");
         await verificarMatches();
         avanzarTarjeta();
     } catch (error) {
@@ -242,9 +321,11 @@ async function dislikeUsuario(id) {
         return;
     }
     try {
+        console.log(`Enviando dislike a ${id}...`);
         const response = await fetch(`/finder/dislike/${loggedInUserId}/${id}`, { method: 'POST' });
         if (!response.ok) throw new Error("Error al dar dislike");
-        // Verifica los matches después de la acción
+
+        console.log("Dislike enviado con éxito");
         await verificarMatches();
         avanzarTarjeta();
     } catch (error) {
@@ -252,6 +333,7 @@ async function dislikeUsuario(id) {
         avanzarTarjeta();
     }
 }
+
 
   // Avanzar a la siguiente tarjeta
   function avanzarTarjeta() {
@@ -265,6 +347,7 @@ async function dislikeUsuario(id) {
 
   // Inicializa cargando el usuario logueado y luego las tarjetas
   fetchLoggedInUser();
+
 </script>
 </body>
 </html>
